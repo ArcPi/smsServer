@@ -6,14 +6,10 @@ CC = g++ -Wall -std=c++11
 VERSION = release
 endif
 
-SRCS = $(wildcard *.cxx)
-
-OBJS = $(SRCS:.cxx=.o)
-
-DEPS = $(SRCS:.cxx=.d)
-
+SRCS = $(wildcard *.cc)
+OBJS = $(SRCS:.cc=.o)
+DEPS = $(SRCS:.cc=.d)
 BIN := $(addprefix $(BUILD_ROOT)/,$(BIN))
-
 LINK_OBJ_DIR = $(BUILD_ROOT)/app/link_obj
 DEP_DIR = $(BUILD_ROOT)/app/dep
 
@@ -37,9 +33,8 @@ $(BIN):$(LINK_OBJ)
 
 	$(CC) -o $@ $^
 
-$(LINK_OBJ_DIR)/%.o:%.cxx
-	$(CC) -I$(INCLUDE_PATH) -o $@ -c $(filter %.cxx,$^)
-
-$(DEP_DIR)/%.d:%.cxx
+$(LINK_OBJ_DIR)/%.o:%.cc
+	$(CC) -I$(INCLUDE_PATH) -o $@ -c $(filter %.cc,$^)
+$(DEP_DIR)/%.d:%.cc
 	echo -n $(LINK_OBJ_DIR)/ > $@
 	gcc -I$(INCLUDE_PATH) -MM $^ >> $@
