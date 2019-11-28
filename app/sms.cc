@@ -20,17 +20,17 @@ int main(int argc, char const *argv[])
     CConfig& config = CConfig::GetInstance(); // 单例类
     if(config.Load("sms.conf") == false)
     {
-        printf("配置文件载入失败，推出\n");
+        printf("配置文件载入失败，退出\n");
         exit(1);
     }
     
-    sms_setproctitle("sms: master process");
+    // sms_setproctitle("sms: master process");
 
-    for(;;)
-    {
-        sleep(2);
-        printf("sleep one second\n");
-    }
+    // for(;;)
+    // {
+    //     sleep(2);
+    //     printf("sleep one second\n");
+    // }
 
     return 0;
 }
