@@ -10,5 +10,9 @@ typedef struct
     char ItemContent[500];
 }CConfigItem;
 
+// 外部全局声明，和设置标题相关
+extern char**   g_os_argv;
+extern char*    gp_envmem;
+extern int      g_environlen;
 
 #endif
