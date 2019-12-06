@@ -1,28 +1,35 @@
-#ifndef __SMS_GLOBAL_H__
-#define __SMS_GLOBAL_H__
 
-// 比较通用的定义放在这里
+#ifndef __SMS_GBLDEF_H__
+#define __SMS_GBLDEF_H__
 
-// 读取配置的结构体定义
+
+//类型定义----------------
+
+//结构定义
 typedef struct
 {
-    char ItemName[50];
-    char ItemContent[500];
-} CConfigItem;
+	char ItemName[50];
+	char ItemContent[500];
+}CConfItem,*LPCConfItem;
 
-// 日志等级
+//和运行日志相关 
 typedef struct
 {
-    int log_level; // 日志级别
-    int fd;        // 日志文件描述符
-} sms_log_t;
+	int    log_level;   //日志级别 或者日志类型，sms_macro.h里分0-8共9个级别
+	int    fd;          //日志文件描述符
 
-// 外部全局声明，和设置标题相关
-extern char **g_os_argv;
-extern char *gp_envmem;
-extern int g_environlen;
+}sms_log_t;
 
-extern pid_t        sms_pid;
-extern sms_log_t    sms_log;
+
+//外部全局量声明
+extern size_t      g_argvneedmem;
+extern size_t      g_envneedmem; 
+extern int         g_os_argc; 
+extern char        **g_os_argv;
+extern char        *gp_envmem; 
+
+extern pid_t       sms_pid;
+extern pid_t       sms_parent;
+extern sms_log_t   sms_log;
 
 #endif

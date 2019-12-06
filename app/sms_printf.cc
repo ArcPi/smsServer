@@ -8,7 +8,6 @@
 #include "sms_func.h"
 #include "sms_macro.h"
 
-static u_char *sms_sprintf_num(u_char *buf, u_char *last, uint64_t ui64, u_char zero, uintptr_t hexadecimal, uintptr_t width);
 static u_char *sms_sprintf_num(u_char *buf, u_char *last, uint64_t ui64, u_char zero, uintptr_t hexadecimal, uintptr_t width)
 {
     u_char *p, temp[SMS_INT64_LEN + 1]; 
@@ -65,7 +64,7 @@ static u_char *sms_sprintf_num(u_char *buf, u_char *last, uint64_t ui64, u_char 
 
     if ((buf + len) >= last)
     {
-        len = last - buf; // 剩余的buf有多少我就拷贝多少
+        len = last - buf; 
     }
 
     return sms_cpymem(buf, p, len); //把最新buf返回去；
@@ -94,9 +93,9 @@ u_char *sms_vslprintf(u_char *buf, u_char *last, const char *fmt, va_list args)
     double f;      //保存%f对应的可变参
     uint64_t frac; //%f可变参数,根据%.2f等，取得小数部分的2位后的内容；
 
-    while (*fmt && buf < last) //   每次处理一个字符，处理的是  "invalid option: \"%s\",%d" 中的字符
+    while (*fmt && buf < last) //每次处理一个字符，处理的是  "invalid option: \"%s\",%d" 中的字符
     {
-        if (*fmt == '%') //    %开头的一般都是需要被可变参数 取代的
+        if (*fmt == '%') //%开头的一般都是需要被可变参数 取代的
         {
             //  -----------------变量初始化工作开始-----------------
             //  ++fmt是先加后用，也就是fmt先往后走一个字节位置，然后再判断该位置的内容

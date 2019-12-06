@@ -1,96 +1,107 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<vector>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vector>
 
-#include "sms_func.h"       // 通用函数
-#include "sms_c_conf.h"     // 读取配置相关的类，放在该头文件中
+#include "sms_func.h"     //函数声明
+#include "sms_c_conf.h"   //和配置文件处理相关的类,名字带c_表示和类有关
 
-// 构造函数
+//静态成员赋值
+CConfig *CConfig::m_instance = NULL;
+
+//构造函数
 CConfig::CConfig()
-{
+{		
 }
 
-bool CConfig::Load(const char* pconfName)
-{
-    // 创建文件描述符
-    FILE *fp = fopen(pconfName, "r");
-    if(NULL == fp)
-    {
+//析构函数
+CConfig::~CConfig()
+{    
+	std::vector<LPCConfItem>::iterator pos;	
+	for(pos = m_ConfigItemList.begin(); pos != m_ConfigItemList.end(); ++pos)
+	{		
+		delete (*pos);
+	}//end for
+	m_ConfigItemList.clear(); 
+}
+
+//装载配置文件
+bool CConfig::Load(const char *pconfName) 
+{   
+    FILE *fp;
+    fp = fopen(pconfName,"r");
+    if(fp == NULL)
         return false;
-    }
 
-    // 临时存放每一行的配置文件
-    char linebuf[501];
+    char  linebuf[501];
+    
+    while(!feof(fp))  //检查文件是否结束 ，没有结束则条件成立
+    {    
+        if(fgets(linebuf,500,fp) == NULL) //从文件中读数据，每次读一行，一行最多不要超过500个字符 
+            continue;
 
-    while (!feof(fp))
-    {
-        // 处理读取一行失败的情况
-        if(fgets(linebuf, 500, fp) == NULL)
+        if(linebuf[0] == 0)
             continue;
-        // 处理开头便是'\0'的情况
-        if(*linebuf=='\0')
-            continue;
-        // 处理注释行的情况，只要每行开头有这些字符，直接跳过
-        if(*linebuf==';' || *linebuf==' ' || *linebuf=='#' || *linebuf=='\t')
-            continue;
+
+        //处理注释行
+        if(*linebuf==';' || *linebuf==' ' || *linebuf=='#' || *linebuf=='\t'|| *linebuf=='\n')
+			continue;
         
     lblprocstring:
-        // 裁剪linebuf末尾的换行、回车、空格
-        if(strlen(linebuf)>0)
-        {
-            if(linebuf[strlen(linebuf)-1] == 10 || linebuf[strlen(linebuf)-1] == 13 || linebuf[strlen(linebuf)-1] == 32)
-                {
-                    linebuf[strlen(linebuf)-1] = 0;
-                    goto lblprocstring;
-                }
-        }
-        // 经过裁剪，linebuf若无内容，重新读取新的一行
-        if(*linebuf == 0)
+		if(strlen(linebuf) > 0)
+		{
+			if(linebuf[strlen(linebuf)-1] == 10 || linebuf[strlen(linebuf)-1] == 13 || linebuf[strlen(linebuf)-1] == 32) 
+			{
+				linebuf[strlen(linebuf)-1] = 0;
+				goto lblprocstring;
+			}		
+		}
+        if(linebuf[0] == 0)
             continue;
-        // '['开头也重新读取一行
-        if(*linebuf == '[')
-            continue;
-        // 类似"ListenPort = 5678"能走下来
-        char* ptmp = strchr(linebuf, '=');
+        if(*linebuf=='[') //[开头的也不处理
+			continue;
+
+        //这种 “ListenPort = 5678”走下来；
+        char *ptmp = strchr(linebuf,'=');
         if(ptmp != NULL)
         {
-            std::shared_ptr<CConfigItem> sp_confitem= std::make_shared<CConfigItem>();
-            strncpy(sp_confitem->ItemName, linebuf, (int)(ptmp-linebuf)); // "ListenPort "拷贝到p_confitem->ItemName
-            strcpy(sp_confitem->ItemContent, ptmp+1); // " 5678"拷贝到p_confitem->ItemContent;
-            
-            Rtrim(sp_confitem->ItemName);
-            Ltrim(sp_confitem->ItemName);
-            Rtrim(sp_confitem->ItemContent);
-            Ltrim(sp_confitem->ItemContent);
+            LPCConfItem p_confitem = new CConfItem;                    
+            strncpy(p_confitem->ItemName,linebuf,(int)(ptmp-linebuf)); //等号左侧的拷贝到p_confitem->ItemName
+            strcpy(p_confitem->ItemContent,ptmp+1);                    //等号右侧的拷贝到p_confitem->ItemContent
 
-            m_ConfigItemList.push_back(std::move(sp_confitem));
-        }
-    } // end while
+            Rtrim(p_confitem->ItemName);
+			Ltrim(p_confitem->ItemName);
+			Rtrim(p_confitem->ItemContent);
+			Ltrim(p_confitem->ItemContent);
 
-    fclose(fp);
+            m_ConfigItemList.push_back(p_confitem);  //内存要释放，因为这里是new出来的 
+        } //end if
+    } //end while(!feof(fp)) 
+
+    fclose(fp); 
     return true;
 }
 
-// 根据ItemName获取配置信息
-const char* CConfig::GetString(const char* p_itemname)
+const char *CConfig::GetString(const char *p_itemname)
 {
-    for(auto& lp_confitem : m_ConfigItemList)
-    {
-        if(strcasecmp(lp_confitem->ItemName, p_itemname) == 0)
-            return lp_confitem->ItemContent;
-    } // end for
-
-    return NULL;
+	std::vector<LPCConfItem>::iterator pos;	
+	for(pos = m_ConfigItemList.begin(); pos != m_ConfigItemList.end(); ++pos)
+	{	
+		if(strcasecmp( (*pos)->ItemName,p_itemname) == 0)
+			return (*pos)->ItemContent;
+	}//end for
+	return NULL;
+}
+int CConfig::GetIntDefault(const char *p_itemname,const int def)
+{
+	std::vector<LPCConfItem>::iterator pos;	
+	for(pos = m_ConfigItemList.begin(); pos !=m_ConfigItemList.end(); ++pos)
+	{	
+		if(strcasecmp( (*pos)->ItemName,p_itemname) == 0)
+			return atoi((*pos)->ItemContent);
+	}//end for
+	return def;
 }
 
-// 根据ItemName获取数字类型配置信息
-int CConfig::GetIntDefault(const char* p_itemname, const int def)
-{
-    for(auto& lp_confitem : m_ConfigItemList)
-    {
-        if(strcasecmp(lp_confitem->ItemName, p_itemname) == 0)
-            return atoi(lp_confitem->ItemContent);
-    } // end for
-    return def;
-}
+
+

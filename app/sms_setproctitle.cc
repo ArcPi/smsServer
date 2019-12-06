@@ -10,14 +10,9 @@
 // 设置标题前的初始化工作：分配内存，把环境变量拷贝到新内存来
 void sms_init_setproctitle()
 {
-    // 统计环境变量所占的内存
-    for (size_t i = 0; environ[i]; ++i)
-    {
-        g_environlen += strlen(environ[i]) + 1;
-    } // end for
 
-    gp_envmem = new char[g_environlen];
-    memset(gp_envmem, 0, g_environlen);
+    gp_envmem = new char[g_envneedmem];
+    memset(gp_envmem, 0, g_envneedmem);
 
     char* ptmp = gp_envmem;
     // 把原来的内容搬到新内存来
@@ -38,13 +33,7 @@ void sms_setproctitle(const char* title)
     // 计算tile长度
     size_t ititlelen = strlen(title);
 
-    size_t e_environlen = 0;
-    for(size_t i = 0; g_os_argv[i]; ++i)
-    {
-        e_environlen += strlen(g_os_argv[i]) + 1;
-    }
-
-    size_t esy = e_environlen + g_environlen;
+    size_t esy = g_argvneedmem + g_envneedmem;
     if(esy <= ititlelen)
     {
         // title过长，内存放不下
