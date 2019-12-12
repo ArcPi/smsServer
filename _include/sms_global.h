@@ -27,9 +27,9 @@ extern size_t      g_envneedmem;
 extern int         g_os_argc; 
 extern char        **g_os_argv;
 extern char        *gp_envmem; 
+extern int		   g_daemonized;
 
 extern pid_t       sms_pid;
 extern pid_t       sms_parent;
 extern sms_log_t   sms_log;
-
 #endif
