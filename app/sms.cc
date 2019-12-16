@@ -8,6 +8,7 @@
 
 #include "sms_c_conf.h" //和配置文件处理相关的类,名字带c_表示和类有关
 #include "sms_func.h"   //各种函数声明
+#include "sms_c_socket.h"
 
 //本文件用的函数声明
 static void freeresource();
@@ -19,6 +20,9 @@ int g_os_argc;            //参数个数
 char **g_os_argv;         //原始命令行参数数组,在main中会被赋值
 char *gp_envmem = NULL;   //指向自己分配的env环境变量的内存，在sms_init_setproctitle()函数中会被分配内存
 int g_daemonized = 0;     //守护进程标记，是否启用守护进程，0不启用，1启用
+
+//socket相关
+CSocket g_socket;
 
 //和进程本身有关的全局量
 pid_t sms_pid;    //当前进程的pid
@@ -60,6 +64,11 @@ int main(int argc, char *const *argv)
     //(3)一些初始化函数，准备放这里
     sms_log_init();              //日志初始化(创建/打开日志文件)
     if (sms_init_signals() != 0) //信号初始化
+    {
+        exitcode = 1;
+        goto lblexit;
+    }
+    if(g_socket.Initialize() == false)
     {
         exitcode = 1;
         goto lblexit;
