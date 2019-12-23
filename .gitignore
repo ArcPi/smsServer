@@ -1,2 +1,4 @@
+compile_commands.json
 .project_alt.json
+.ccls*
 .vscode
